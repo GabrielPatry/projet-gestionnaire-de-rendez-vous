@@ -1,4 +1,4 @@
-from transitions import Machine
+#from transitions import Machine
 
 #le code principal du projet médecin
 #d'abord, les classes qui seront amenées à être utilisées
@@ -33,17 +33,40 @@ class User:
     @property
     def status(self):
         return self._status
+    @Noccurence.setter
+    def Noccurence(self,newNoccurence):
+        self._Noccurence =  newNoccurence
+    @status.setter
+    def status(self,newstatus):
+        self._status =  newstatus
     @nom.setter
     def nom(self,newnom):
-        return
+        self._nom = newnom
+    @prenom.setter
+    def prenom(self,newprenom):
+        self._prenom =  newprenom
+    @age.setter
+    def age(self,newage):
+        self._age = newage
+    @password.setter
+    def password(self,newpassword):
+        self._password =  newpassword
     
-    def __init__(self,nom,prenom,age,password,Noccurence,identifiant,status):
+
+
+
+    def __init__(self,nom,prenom,age,password,Noccurence,status):
+        self._nom = 'Jean'
+        self._prenom = 'Bon'
+        self._age = 0
+        self._password = '1234'
+        self._Noccurence = 0
+        self._status = False
         self.nom = nom
         self.prenom = prenom
         self.age = age
         self.password = password
         self.Noccurence = Noccurence
-        self.identifiant = identifiant
         self.status = status
     #nom prénom age mot de passe (why not faire un système de récupération de mot de passe) 
     #identifiant qui sera set par défaut à prénom.nomN°d'occurence (et pas modifiable pour le début)
@@ -68,6 +91,7 @@ class EmploiDuTemps:
 
 #ici les procédures associés à chaque action élémentaire
 
+#procédures pour l'écran d'accueil
 def create_user_account(doctor = False):
     """va inclure le fait qu l'utilisateur est médecin ou patient"""
     pass
@@ -78,6 +102,7 @@ def connect(*args) ->User:
 def disconnect():
     pass
 
+#procédures pour les patients
 def show_rendez_vous():
     pass
 
@@ -86,22 +111,23 @@ def make_rendez_vous():
 
 def delete_rendez_vous():
     pass
-
+def show_next_disponibility():
+    pass
+#procédures pour les médecins
 def rendez_vous_by_date():
     pass
 
-def show_next_disponibility():
-    pass
+
 def manage_agenda():
     pass
-
+#le reste...
 
 def userchoice(status,user = None):
     if status == 'Disconnected' : 
         print("1. Creer un compte utilisateur \n2. Creer un compte medecin \n3. S authentifier")
         saisie_effectuée = False
         user_choice = 0
-        while (saisie_effectuée == False) or (not 0<user_choice<12):  
+        while (saisie_effectuée == False) or (not 0<user_choice<4):  
             user_choice = input('Choisissez une option (1-3) :')
             saisie_effectuée = True
             try:
@@ -124,11 +150,11 @@ def userchoice(status,user = None):
                 saisie_effectuée = False
                 user_choice = 0
 
+Bernard = User('bernard','jojo',5,'njjjrjjg$$ùgù^^^^-',1,True)
 
-
-#et la le code
+print(Bernard.__dict__,Bernard.nom)#et la le code
 MACHINE_STATUS = 'Disconnected' #au lancement du programme, personne n'est connecté
-CURRENT_USER_CONNECTED = None
+CURRENT_USER_CONNECTED = None #l'utilisateur qui est connecté au système(on ne pourra bien sûr avoir que 1 utilisateur à la fois)
 list_actions_doctor = [disconnect,show_rendez_vous,delete_rendez_vous,rendez_vous_by_date,manage_agenda] #list that contain all the functions associated with users choices when he is connected to its own space, it is likely to evolve because it is not the same for a doctor and a patient 
 list_actions_patient = []
 
