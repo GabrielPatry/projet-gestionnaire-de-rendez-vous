@@ -75,12 +75,62 @@ class Doc(User):
     pass
     #chaque médecin à un attribut de classe EmploiDuTemps pour savoir son...emploi du temps 
 
-class Patent(User):
+#petit rajout pour la classe Doc
+    def __init__(self,nom,specialite):
+        self.nom = nom
+        self.specialite = specialite
+        self.agenda = {}
+
+    def ajouter_evenement(self, date, evenement):
+        if date in self.agenda : 
+            self.agenda[date].append(evenement) 
+        else : 
+            self.agenda[date] = [evenement]
+
+    def emploi_du_temps(self):
+        print(f"Emploi du temps du Dr. {self.nom} ({self.specialite}):")
+        if not self.agenda : 
+            print("Aucun évènement prévu.")
+            return
+        for date, evenements in self.agenda.items():
+            print(f"\n{date}:")
+            for evenement in evenements:
+                print(f"- {evenement}")
+
+
+class Patient(User):
     pass
+# rajout class patient 
+
+    def __init__(self, nom, prenom, age, sexe, numero_secu, pathologie):
+        self.nom = nom
+        self.prenom = prenom
+        self.age = age
+        self.sexe = sexe
+        self.numero_secu = numero_secu
+        self.pathologie = pathologie
+
+    def __str__(self) : 
+        return f"Patient: {self.nom} {self.prenom}, Age: {self.age}, Sexe: {self.sexe}, Numéro Sécurité Sociale: {self.numero_securite_sociale}, Pathologie : {self.pathologie}"
 
 class RendezVous:
     pass
     #l'idée est ici d'avoir une heure de début et une heure de fin, aussi un jour, on pourra utiliser la classe datetime du module datetime pour les dates
+
+#Rajout pour la classe rendez-vous
+    def __init__(self, medecin, patient, jour, heure_debut, heure_fin, salle=None):
+        self.medecin = medecin
+        self.patient = patient
+        self.jour = jour
+        self.heure_debut = heure_debut
+        self.heure_fin = heure_fin
+        self.salle = salle
+
+    def __str__(self):
+        salle_info = f", Salle: {self.salle}" if self.salle else ""
+        return f"Rendez-vous le {self.jour} de {self.heure_debut} à {self.heure_fin} avec Dr. {self.medecin.nom} pour {self.patient.prenom} {self.patient.nom}{salle_info}"
+
+#et on peut ensuite importer datetime du module datetime
 
 class EmploiDuTemps:
     """classe pour décrire l'emploi du temps du médecin, ou du patient"""
