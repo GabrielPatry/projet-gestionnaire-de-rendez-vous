@@ -1,5 +1,5 @@
 #from transitions import Machine
-
+import pandas as pd
 #le code principal du projet médecin
 #d'abord, les classes qui seront amenées à être utilisées
 
@@ -33,6 +33,9 @@ class User:
     @property
     def status(self):
         return self._status
+    @property
+    def sexe(self):
+        return self._status
     @Noccurence.setter
     def Noccurence(self,newNoccurence):
         self._Noccurence =  newNoccurence
@@ -51,40 +54,52 @@ class User:
     @password.setter
     def password(self,newpassword):
         self._password =  newpassword
-    
+    @sexe.setter
+    def sexe(self,newsexe):
+        if (newsexe == 'F') or (newsexe == 'H'):
+            self._sexe = newsexe
 
 
 
-    def __init__(self,nom,prenom,age,password,Noccurence,status):
+    def __init__(self,nom,prenom,age,password,Noccurence,status,sexe):
         self._nom = 'Jean'
         self._prenom = 'Bon'
         self._age = 0
         self._password = '1234'
         self._Noccurence = 0
         self._status = False
+        self._sexe = 'F'
         self.nom = nom
         self.prenom = prenom
         self.age = age
         self.password = password
         self.Noccurence = Noccurence
         self.status = status
+        self.sexe = sexe
     #nom prénom age mot de passe (why not faire un système de récupération de mot de passe) 
     #identifiant qui sera set par défaut à prénom.nomN°d'occurence (et pas modifiable pour le début)
 
 class Doc(User):
-    pass
     #chaque médecin à un attribut de classe EmploiDuTemps pour savoir son...emploi du temps 
 
 #petit rajout pour la classe Doc
-    def __init__(self,nom,specialite):
-        self.nom = nom
+    @property
+    def specialite(self):
+        return self._specialite
+    @specialite.setter
+    def specialite(self,newspecialite):
+        self._specialite = newspecialite #on peut à cet endroit facilement forcer le choix d'une spécialité parmis des spécialités existantes
+
+    def __init__(self,nom,prenom,age,password,Noccurence,status,sexe,specialite):
+        super().__init__(nom,prenom,age,password,Noccurence,status,sexe)
+        self._specialite = 'non renseignée'
         self.specialite = specialite
-        self.agenda = {}
+        self.agenda = {} #ne passe pas dans le dataframe
 
     def ajouter_evenement(self, date, evenement):
         if date in self.agenda : 
-            self.agenda[date].append(evenement) 
-        else : 
+            self.agenda[date].append(evenement) #ici je propose que évènement soit un identifiant faisant reférence à une ligne d'un dataframe/csv spécifique qui contienne toutes les info relatives à l'évènement qui sera sans doute de la classe rendez vous
+        else :          #date sous la forme 'JJ/MM/AAAA' je propose
             self.agenda[date] = [evenement]
 
     def emploi_du_temps(self):
@@ -95,18 +110,14 @@ class Doc(User):
         for date, evenements in self.agenda.items():
             print(f"\n{date}:")
             for evenement in evenements:
-                print(f"- {evenement}")
+                print(f"- {evenement}") #deviendra print(df[evenement]) (bien vu le str de RendezVous)
 
 
 class Patient(User):
-    pass
 # rajout class patient 
 
-    def __init__(self, nom, prenom, age, sexe, numero_secu, pathologie):
-        self.nom = nom
-        self.prenom = prenom
-        self.age = age
-        self.sexe = sexe
+    def __init__(self,nom,prenom,age,password,Noccurence,status, sexe, numero_secu, pathologie):
+        super().__init__(nom,prenom,age,password,Noccurence,status,sexe)
         self.numero_secu = numero_secu
         self.pathologie = pathologie
 
@@ -114,7 +125,6 @@ class Patient(User):
         return f"Patient: {self.nom} {self.prenom}, Age: {self.age}, Sexe: {self.sexe}, Numéro Sécurité Sociale: {self.numero_securite_sociale}, Pathologie : {self.pathologie}"
 
 class RendezVous:
-    pass
     #l'idée est ici d'avoir une heure de début et une heure de fin, aussi un jour, on pourra utiliser la classe datetime du module datetime pour les dates
 
 #Rajout pour la classe rendez-vous
@@ -200,13 +210,24 @@ def userchoice(status,user = None):
                 saisie_effectuée = False
                 user_choice = 0
 
-Bernard = User('bernard','jojo',5,'njjjrjjg$$ùgù^^^^-',1,True)
 
-print(Bernard.__dict__,Bernard.nom)#et la le code
+#quelques lignes pour initialiser les dataframes(inactivés ensuite et à réactiver si on souhaite ajouter les attributs)
+Bernarddoc = Doc('bernard','jojo',5,'njjjrjjg$$ùgù^^^^-',1,True,'H','gostrologue')
+Bernardpat = Patient('bernard','jojo',5,'njjjrjjg$$ùgù^^^^-',1,True,'H',47,'les cramptés')
+
+DOCTEURS_INIT = pd.DataFrame(data = Bernarddoc.__dict__,index = [0])
+PATIENTS_INIT = pd.DataFrame(data = Bernardpat.__dict__,index = [0])
+DOCTEURS_INIT.to_csv('docteurs.csv')
+PATIENTS_INIT.to_csv('patients.csv')
+#et la le code
+PATIENTS = pd.read_csv('patients.csv')
+DOCTEURS = pd.read_csv('docteurs.csv') 
+print(PATIENTS)
+print(DOCTEURS)
 MACHINE_STATUS = 'Disconnected' #au lancement du programme, personne n'est connecté
 CURRENT_USER_CONNECTED = None #l'utilisateur qui est connecté au système(on ne pourra bien sûr avoir que 1 utilisateur à la fois)
 list_actions_doctor = [disconnect,show_rendez_vous,delete_rendez_vous,rendez_vous_by_date,manage_agenda] #list that contain all the functions associated with users choices when he is connected to its own space, it is likely to evolve because it is not the same for a doctor and a patient 
-list_actions_patient = []
+list_actions_patient = [] #à compléter
 
 while True:
     if MACHINE_STATUS == 'Disconnected':
