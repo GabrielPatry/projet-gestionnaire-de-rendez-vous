@@ -52,7 +52,30 @@ class Doc(User):
     pass
     #chaque médecin à un attribut de classe EmploiDuTemps pour savoir son...emploi du temps 
 
-class Patent(User):
+#petit rajout pour la classe Doc
+    def __init__(self,nom,specialite):
+        self.nom = nom
+        self.specialite = specialite
+        self.agenda = {}
+
+    def ajouter_evenement(self, date, evenement):
+        if date in self.agenda : 
+            self.agenda[date].append(evenement)
+        else : 
+            self.agenda[date] = [evenement]
+
+    def emploi_du_temps(self):
+        print(f"Emploi du temps du Dr. {self.nom} ({self.specialite}):")
+        if not self.agenda : 
+            print("Aucun évènement prévu.")
+            return
+        for date, evenements in self.agenda.items():
+            print(f"\n{date}:")
+            for evenement in evenements:
+                print(f"- {evenement}")
+
+
+class Patient(User):
     pass
 
 class RendezVous:
