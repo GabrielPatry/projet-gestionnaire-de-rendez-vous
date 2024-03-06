@@ -1,2 +1,3 @@
-,_nom,_prenom,_age,_password,_Noccurence,_status,_sexe,numero_secu,pathologie
-0,bernard,jojo,5,njjjrjjg$$ùgù^^^^-,1,True,H,47,les cramptés
+,Unnamed: 0.1,Unnamed: 0,_nom,_prenom,_age,_password,_Noccurence,_status,_sexe,numero_secu,pathologie
+0,0.0,0.0,bernard,jojo,5,njjjrjjg$$ùgù^^^^-,1,True,H,47,les cramptés
+1,,,jojo,oui,15,1234,F,False,F,14582,pets intempestifs

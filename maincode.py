@@ -152,9 +152,26 @@ class EmploiDuTemps:
 #ici les procédures associés à chaque action élémentaire
 
 #procédures pour l'écran d'accueil
-def create_user_account(doctor = False):
+def create_user_account(patients,docteurs,doctor = False):
     """va inclure le fait qu l'utilisateur est médecin ou patient"""
-    pass
+    nom = input('nom:')
+    prenom = input('prenom:')
+    age = input('age:')
+    password = input('password:')
+    sexe = input("sexe(H/F):") 
+    status = False 
+    Noccurence = 1 #Noccurence reste à traiter...
+    if doctor:
+        specialite = input("specialite:")
+        newuser = Doc(nom,prenom,age,password,sexe,status,Noccurence,specialite)
+        docteurs = pd.concat([docteurs,pd.DataFrame(newuser.__dict__,index = [0])],ignore_index = True)
+    else:
+        num_secu = input('ton num de secu:')
+        pathos = input("pourquoi tu consulte?")
+        newuser = Patient(nom,prenom,age,password,sexe,status,Noccurence,num_secu,pathos)
+        patients = pd.concat([patients,pd.DataFrame(newuser.__dict__, index = [0])],ignore_index = True)
+    return patients,docteurs
+
 
 def connect(*args) ->User:
     pass
@@ -200,7 +217,7 @@ def userchoice(status,user = None):
         print("\n1. Se deconnecter \n2. Voir les rendez-vous disponibles \n3. Prendre un rendez-vous \n4. Annuler un rendez-vous\n5. Voir les rendez-vous planifies\n6. Rechercher des rendez-vous par date\n7. Gerer l emploi du temps (Infirmiers)\n8. Consultation sur place") #to change whether it is a doctor or a patient
         saisie_effectuée = False
         user_choice = 0
-        while (saisie_effectuée == False) or (not 0<user_choice<12):  
+        while (saisie_effectuée == False) or (not 0<user_choice<9):  
             user_choice = input('Choisissez une option (1-8) :')
             saisie_effectuée = True
             try:
@@ -209,34 +226,39 @@ def userchoice(status,user = None):
                 print('saisie invalide')
                 saisie_effectuée = False
                 user_choice = 0
+    return user_choice
 
 
 #quelques lignes pour initialiser les dataframes(inactivés ensuite et à réactiver si on souhaite ajouter les attributs)
-Bernarddoc = Doc('bernard','jojo',5,'njjjrjjg$$ùgù^^^^-',1,True,'H','gostrologue')
+"""Bernarddoc = Doc('bernard','jojo',5,'njjjrjjg$$ùgù^^^^-',1,True,'H','gostrologue')
 Bernardpat = Patient('bernard','jojo',5,'njjjrjjg$$ùgù^^^^-',1,True,'H',47,'les cramptés')
 
 DOCTEURS_INIT = pd.DataFrame(data = Bernarddoc.__dict__,index = [0])
 PATIENTS_INIT = pd.DataFrame(data = Bernardpat.__dict__,index = [0])
 DOCTEURS_INIT.to_csv('docteurs.csv')
-PATIENTS_INIT.to_csv('patients.csv')
+PATIENTS_INIT.to_csv('patients.csv')"""
 #et la le code
-PATIENTS = pd.read_csv('patients.csv')
-DOCTEURS = pd.read_csv('docteurs.csv') 
-print(PATIENTS)
-print(DOCTEURS)
+ 
+
 MACHINE_STATUS = 'Disconnected' #au lancement du programme, personne n'est connecté
 CURRENT_USER_CONNECTED = None #l'utilisateur qui est connecté au système(on ne pourra bien sûr avoir que 1 utilisateur à la fois)
 list_actions_doctor = [disconnect,show_rendez_vous,delete_rendez_vous,rendez_vous_by_date,manage_agenda] #list that contain all the functions associated with users choices when he is connected to its own space, it is likely to evolve because it is not the same for a doctor and a patient 
 list_actions_patient = [] #à compléter
 
 while True:
+    PATIENTS = pd.read_csv('patients.csv')
+    DOCTEURS = pd.read_csv('docteurs.csv')
+    print(PATIENTS)
     if MACHINE_STATUS == 'Disconnected':
         c = userchoice(MACHINE_STATUS)
-        if c == 1:create_user_account()
-        elif c == 2:create_user_account(doctor = True)
+        print(c)
+        if c == 1:PATIENTS,DOCTEURS = create_user_account(PATIENTS,DOCTEURS)
+        elif c == 2:PATIENTS,DOCTEURS = create_user_account(PATIENTS,DOCTEURS,doctor = True)
         else:CURRENT_USER_CONNECTED = connect(True)
     else:
         if type(CURRENT_USER_CONNECTED) == Doc:
             c = userchoice(MACHINE_STATUS,user = 'Doc')
         else:
             c = userchoice(MACHINE_STATUS,user = 'Patient')
+    PATIENTS.to_csv('patients.csv')
+    DOCTEURS.to_csv('docteurs.csv')
