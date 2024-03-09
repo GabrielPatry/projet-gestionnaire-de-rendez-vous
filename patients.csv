@@ -1,3 +1,4 @@
-,Unnamed: 0.1,Unnamed: 0,_nom,_prenom,_age,_password,_Noccurence,_status,_sexe,numero_secu,pathologie
-0,0.0,0.0,bernard,jojo,5,njjjrjjg$$ùgù^^^^-,1,True,H,47,les cramptés
-1,,,jojo,oui,15,1234,F,False,F,14582,pets intempestifs
+,Unnamed: 0.4,Unnamed: 0.3,Unnamed: 0.2,Unnamed: 0.1,Unnamed: 0,_nom,_prenom,_age,_password,_Noccurence,_status,_sexe,_identifiant,numero_secu,pathologie
+0,0,0,0,0.0,0.0,bernard,jojo,5,njjjrjjg$$ùgù^^^^-,1,True,H,jojobernard1,47,les cramptés
+1,1,1,1,1.0,,jean,mineur,14,1234abcd,H,False,F,mineurjeanH,142578,j'ai mal
+2,2,2,2,,,bon,jour,52,1234dfgh,1,False,H,jourbon1,142578,heeeheh

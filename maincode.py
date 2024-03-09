@@ -61,7 +61,7 @@ class User:
 
 
 
-    def __init__(self,nom,prenom,age,password,Noccurence,status,sexe):
+    def __init__(self,_nom,_prenom,_age,_password,_Noccurence,_status,_sexe):
         self._nom = 'Jean'
         self._prenom = 'Bon'
         self._age = 0
@@ -69,13 +69,17 @@ class User:
         self._Noccurence = 0
         self._status = False
         self._sexe = 'F'
-        self.nom = nom
-        self.prenom = prenom
-        self.age = age
-        self.password = password
-        self.Noccurence = Noccurence
-        self.status = status
-        self.sexe = sexe
+        self.nom = _nom
+        self.prenom = _prenom
+        self.age = _age
+        self.password = _password
+        self.Noccurence = _Noccurence
+        self.status = _status
+        self.sexe = _sexe
+        self._identifiant = self.prenom + self.nom + str(self.Noccurence)
+    def change_status(self):
+        self._status = not self._status
+    
     #nom prénom age mot de passe (why not faire un système de récupération de mot de passe) 
     #identifiant qui sera set par défaut à prénom.nomN°d'occurence (et pas modifiable pour le début)
 
@@ -90,10 +94,10 @@ class Doc(User):
     def specialite(self,newspecialite):
         self._specialite = newspecialite #on peut à cet endroit facilement forcer le choix d'une spécialité parmis des spécialités existantes
 
-    def __init__(self,nom,prenom,age,password,Noccurence,status,sexe,specialite):
-        super().__init__(nom,prenom,age,password,Noccurence,status,sexe)
+    def __init__(self,_nom,_prenom,_age,_password,_Noccurence,_status,_sexe,_specialite,**kwargs):
+        super().__init__(_nom,_prenom,_age,_password,_Noccurence,_status,_sexe)
         self._specialite = 'non renseignée'
-        self.specialite = specialite
+        self.specialite = _specialite
         self.agenda = {} #ne passe pas dans le dataframe
 
     def ajouter_evenement(self, date, evenement):
@@ -116,8 +120,8 @@ class Doc(User):
 class Patient(User):
 # rajout class patient 
 
-    def __init__(self,nom,prenom,age,password,Noccurence,status, sexe, numero_secu, pathologie):
-        super().__init__(nom,prenom,age,password,Noccurence,status,sexe)
+    def __init__(self,_nom,_prenom,_age,_password,_Noccurence,_status, _sexe, numero_secu, pathologie,**kwargs):
+        super().__init__(_nom,_prenom,_age,_password,_Noccurence,_status,_sexe)
         self.numero_secu = numero_secu
         self.pathologie = pathologie
 
@@ -143,7 +147,7 @@ class RendezVous:
 #et on peut ensuite importer datetime du module datetime
 
 class EmploiDuTemps:
-    """classe pour décrire l'emploi du temps du médecin, ou du patient"""
+    """classe pour décrire l'emploi du temps du médecin, ou du patient, ne sera pas utiisée"""
     pass
     #l'idée est ici de définir le cadre dans lequel les rendez vous doivent s'inscrire, aussi une erreur si deux rendez-vous se superposent,
     # et aussi un timestep pour évier d'avoir des horaires abérrants (genre on réserve au min des rdv d'un quart d'heure et on divise la journée en section de 9-00 9-15 9-30 ...)
@@ -163,19 +167,42 @@ def create_user_account(patients,docteurs,doctor = False):
     Noccurence = 1 #Noccurence reste à traiter...
     if doctor:
         specialite = input("specialite:")
-        newuser = Doc(nom,prenom,age,password,sexe,status,Noccurence,specialite)
+        newuser = Doc(nom,prenom,age,password,Noccurence,status,sexe,specialite)
         docteurs = pd.concat([docteurs,pd.DataFrame(newuser.__dict__,index = [0])],ignore_index = True)
     else:
         num_secu = input('ton num de secu:')
         pathos = input("pourquoi tu consulte?")
-        newuser = Patient(nom,prenom,age,password,sexe,status,Noccurence,num_secu,pathos)
+        newuser = Patient(nom,prenom,age,password,Noccurence,status,sexe,num_secu,pathos)
         patients = pd.concat([patients,pd.DataFrame(newuser.__dict__, index = [0])],ignore_index = True)
     return patients,docteurs
 
 
-def connect(*args) ->User:
-    pass
-
+def connect(patients,docteurs) ->User:
+    est_docteur = input('docteur?(oui/non)') 
+    if est_docteur == 'oui':
+        liste_identifiants_doc = list(docteurs['_identifiant'])
+        input_identifiant = input("identifiant:")
+        while not input_identifiant in liste_identifiants_doc: 
+            print('identifiant invalide')
+            input_identifiant = input("identifiant")
+        input_mdp = input("votre mot de passe:")
+        while not docteurs[docteurs._identifiant == input_identifiant]['_password'][pd.Index(docteurs['_identififiant']).get_loc('input_identifiant')] == input_mdp:    
+            print("mot de passe incorrect !")
+            input_mdp = input("votre mot de passe:")
+        return Doc(**docteurs[docteurs._identifiant == input_identifiant].to_dict(orient = 'records')[0])
+    if est_docteur == 'non':
+        liste_identifiants_pat = list(patients['_identifiant'])
+        input_identifiant = input("identifiant:")
+        while not input_identifiant in liste_identifiants_pat: 
+            print('identifiant invalide')
+            input_identifiant = input("identifiant")
+        print(str(patients[patients._identifiant == input_identifiant]['_password'][pd.Index(docteurs['_identififiant']).get_loc('input_identifiant')]))
+        input_mdp = input("votre mot de passe:")
+        while not str(patients[patients._identifiant == input_identifiant]['_password'][pd.Index(docteurs['_identififiant']).get_loc('input_identifiant')]) == input_mdp:    
+            print("mot de passe incorrect !")
+            input_mdp = input("votre mot de passe:")
+        print(patients[patients._identifiant == input_identifiant].to_dict(orient = 'records')[0])
+        return Patient(**patients[patients._identifiant == input_identifiant].to_dict(orient = 'records')[0])
 def disconnect():
     pass
 
@@ -230,13 +257,13 @@ def userchoice(status,user = None):
 
 
 #quelques lignes pour initialiser les dataframes(inactivés ensuite et à réactiver si on souhaite ajouter les attributs)
-"""Bernarddoc = Doc('bernard','jojo',5,'njjjrjjg$$ùgù^^^^-',1,True,'H','gostrologue')
+'''Bernarddoc = Doc('bernard','jojo',5,'njjjrjjg$$ùgù^^^^-',1,True,'H','gostrologue')
 Bernardpat = Patient('bernard','jojo',5,'njjjrjjg$$ùgù^^^^-',1,True,'H',47,'les cramptés')
 
 DOCTEURS_INIT = pd.DataFrame(data = Bernarddoc.__dict__,index = [0])
 PATIENTS_INIT = pd.DataFrame(data = Bernardpat.__dict__,index = [0])
 DOCTEURS_INIT.to_csv('docteurs.csv')
-PATIENTS_INIT.to_csv('patients.csv')"""
+PATIENTS_INIT.to_csv('patients.csv')'''
 #et la le code
  
 
@@ -254,7 +281,9 @@ while True:
         print(c)
         if c == 1:PATIENTS,DOCTEURS = create_user_account(PATIENTS,DOCTEURS)
         elif c == 2:PATIENTS,DOCTEURS = create_user_account(PATIENTS,DOCTEURS,doctor = True)
-        else:CURRENT_USER_CONNECTED = connect(True)
+        else:
+            CURRENT_USER_CONNECTED = connect(PATIENTS,DOCTEURS)
+            MACHINE_STATUS = 'Connected'
     else:
         if type(CURRENT_USER_CONNECTED) == Doc:
             c = userchoice(MACHINE_STATUS,user = 'Doc')
