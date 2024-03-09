@@ -4,6 +4,7 @@ import pandas as pd
 #d'abord, les classes qui seront amenées à être utilisées
 
 class PassWord:
+    """classe inutilisée finalement"""
     def __init__(self,password):
         self.password = password
     
@@ -98,7 +99,8 @@ class Doc(User):
         super().__init__(_nom,_prenom,_age,_password,_Noccurence,_status,_sexe)
         self._specialite = 'non renseignée'
         self.specialite = _specialite
-        self.agenda = {} #ne passe pas dans le dataframe
+        #self.agenda = {} #ne passe pas dans le dataframe 
+        #dans la mesure où chaque rendez vous à l'information du nom(l'identifiant) du médecin, il n'est pas nécéssaire de faire apparaître son agenda en temps qu'attribut 
 
     def ajouter_evenement(self, date, evenement):
         if date in self.agenda : 
@@ -147,7 +149,7 @@ class RendezVous:
 #et on peut ensuite importer datetime du module datetime
 
 class EmploiDuTemps:
-    """classe pour décrire l'emploi du temps du médecin, ou du patient, ne sera pas utiisée"""
+    """classe pour décrire l'emploi du temps du médecin, ou du patient, ne sera pas utiisée car peu commode"""
     pass
     #l'idée est ici de définir le cadre dans lequel les rendez vous doivent s'inscrire, aussi une erreur si deux rendez-vous se superposent,
     # et aussi un timestep pour évier d'avoir des horaires abérrants (genre on réserve au min des rdv d'un quart d'heure et on divise la journée en section de 9-00 9-15 9-30 ...)
@@ -264,6 +266,10 @@ DOCTEURS_INIT = pd.DataFrame(data = Bernarddoc.__dict__,index = [0])
 PATIENTS_INIT = pd.DataFrame(data = Bernardpat.__dict__,index = [0])
 DOCTEURS_INIT.to_csv('docteurs.csv')
 PATIENTS_INIT.to_csv('patients.csv')'''
+#quelques lignes pour initialiser le Dataframe qui va contenir les rendez-vous
+"""RDV_0 = RendezVous('doc','pat','27/11/2003','17H30','18H00')
+RDV_INIT = pd.DataFrame(data = RDV_0.__dict__,index  = [0])
+RDV_INIT.to_csv('rendez_vous.csv')"""
 #et la le code
  
 
