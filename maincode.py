@@ -186,7 +186,7 @@ def connect(patients,docteurs) ->User:
             print('identifiant invalide')
             input_identifiant = input("identifiant")
         input_mdp = input("votre mot de passe:")
-        while not docteurs[docteurs._identifiant == input_identifiant]['_password'][pd.Index(docteurs['_identififiant']).get_loc('input_identifiant')] == input_mdp:    
+        while not docteurs[docteurs._identifiant == input_identifiant]['_password'][pd.Index(liste_identifiants_doc).get_loc(input_identifiant)] == input_mdp:    
             print("mot de passe incorrect !")
             input_mdp = input("votre mot de passe:")
         return Doc(**docteurs[docteurs._identifiant == input_identifiant].to_dict(orient = 'records')[0])
@@ -196,9 +196,9 @@ def connect(patients,docteurs) ->User:
         while not input_identifiant in liste_identifiants_pat: 
             print('identifiant invalide')
             input_identifiant = input("identifiant")
-        print(str(patients[patients._identifiant == input_identifiant]['_password'][pd.Index(docteurs['_identififiant']).get_loc('input_identifiant')]))
+        print(str(patients[patients._identifiant == input_identifiant]['_password'][pd.Index(liste_identifiants_pat).get_loc(input_identifiant)]))
         input_mdp = input("votre mot de passe:")
-        while not str(patients[patients._identifiant == input_identifiant]['_password'][pd.Index(docteurs['_identififiant']).get_loc('input_identifiant')]) == input_mdp:    
+        while not str(patients[patients._identifiant == input_identifiant]['_password'][pd.Index(liste_identifiants_pat).get_loc(input_identifiant)]) == input_mdp:    
             print("mot de passe incorrect !")
             input_mdp = input("votre mot de passe:")
         print(patients[patients._identifiant == input_identifiant].to_dict(orient = 'records')[0])
