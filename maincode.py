@@ -134,9 +134,9 @@ class RendezVous:
     #l'idée est ici d'avoir une heure de début et une heure de fin, aussi un jour, on pourra utiliser la classe datetime du module datetime pour les dates
 
 #Rajout pour la classe rendez-vous
-    def __init__(self, medecin, patient, jour, heure_debut, heure_fin, salle=None):
-        self.medecin = medecin #l'identifiant du médecin
-        self.patient = patient #l'identifiant du patient
+    def __init__(self, medecin, patient, jour, heure_debut, heure_fin, salle=None,*args,**kwargs):
+        self.medecin = medecin #l'identifiant du médecin(en fait il faut que ce soit un objet de la classe Doc)
+        self.patient = patient #l'identifiant du patient(même remarque que précédemment)
         self.jour = jour
         self.heure_debut = heure_debut
         self.heure_fin = heure_fin
@@ -144,7 +144,7 @@ class RendezVous:
 
     def __str__(self):
         salle_info = f", Salle: {self.salle}" if self.salle else ""
-        return f"Rendez-vous le {self.jour} de {self.heure_debut} à {self.heure_fin} avec Dr. {self.medecin.nom} pour {self.patient.prenom} {self.patient.nom}{salle_info}"
+        return f"Rendez-vous le {self.jour} de {self.heure_debut} à {self.heure_fin} avec Dr. {self.medecin} pour {self.patient}.{salle_info}"
 
 #et on peut ensuite importer datetime du module datetime
 
@@ -219,11 +219,19 @@ def show_rendez_vous(df_rendez_vous,userID,doctor = False):
         df_rendez_vous_user = df_rendez_vous[df_rendez_vous.patient == userID]
         rendez_vous_user = df_rendez_vous_user.to_dict(orient = 'records')
         for rdv in rendez_vous_user:
-            print(RendezVous(**rdv))        
+            print(RendezVous(**rdv))  
+    return df_rendez_vous      
 
-def make_rendez_vous(df_rendez_vous,docteurID):
+def make_rendez_vous(df_rendez_vous,patientID):
     """seul le patient peut prendre rendez-vous (et ça fait sens t'imagine c'est le docteur qui t'appelles et qui te dit "mon gars tu va venir dans mon cabinet demain")"""
-    pass
+    medecin = input("avec quel médecin tu veux te soigner(écrit son identifiant):")
+    patient = patientID
+    jour = input("quel jour(format JJ/MM/AAAA):")
+    heure_debut = input("quelle heure de début(format hh:mm)?")
+    heure_fin = input("quelle heure de fin(format hh:mm)?")
+    new_rdv = RendezVous(medecin, patient,jour,heure_debut,heure_fin)
+    df_rendez_vous = pd.concat([df_rendez_vous,pd.DataFrame(data = new_rdv.__dict__,index = [0])],ignore_index = True)
+    return df_rendez_vous
 
 def delete_rendez_vous(*args,**kwargs):
     pass
@@ -305,6 +313,7 @@ list_actions_patient = [disconnect,show_next_disponibilities,show_rendez_vous,ma
 while True:
     PATIENTS = pd.read_csv('patients.csv')
     DOCTEURS = pd.read_csv('docteurs.csv')
+    RDV = pd.read_csv('rendez_vous.csv')
     print(PATIENTS)
     if MACHINE_STATUS == 'Disconnected':
         c = userchoice(MACHINE_STATUS)
@@ -320,6 +329,7 @@ while True:
             list_actions_doctor[c-1]() #mettre entre parenthèse tout les arguments nécéssiare au bon fonctionnement de n'importe laquelle des fonctions
         else:
             c = userchoice(MACHINE_STATUS,user = 'Patient')
-            list_actions_patient[c-1]() #même remarque que pour docteur
+            RDV = list_actions_patient[c-1](RDV,CURRENT_USER_CONNECTED.identifiant) #même remarque que pour docteur
     PATIENTS.to_csv('patients.csv')
     DOCTEURS.to_csv('docteurs.csv')
+    RDV.to_csv('rendez_vous.csv')
