@@ -205,7 +205,7 @@ def connect(patients,docteurs) ->User:
             input_mdp = input("votre mot de passe:")
         print(patients[patients._identifiant == input_identifiant].to_dict(orient = 'records')[0])
         return Patient(**patients[patients._identifiant == input_identifiant].to_dict(orient = 'records')[0])
-def disconnect():
+def disconnect(*args,**kwargs):
     pass
 
 #procédures pour les patients
@@ -222,15 +222,15 @@ def show_rendez_vous(df_rendez_vous,userID,doctor = False):
             print(RendezVous(**rdv))        
 
 def make_rendez_vous(df_rendez_vous,docteurID):
-    """seul le patient peut prendre rendez-vous (et ça fait sens t'imagine c'est le docteur qui t'appelles etqui te dit "mon gars tu va venir dans mon cabinet demain")"""
+    """seul le patient peut prendre rendez-vous (et ça fait sens t'imagine c'est le docteur qui t'appelles et qui te dit "mon gars tu va venir dans mon cabinet demain")"""
     pass
 
-def delete_rendez_vous():
+def delete_rendez_vous(*args,**kwargs):
     pass
-def show_next_disponibility():
+def show_next_disponibilities(*args,**kwargs):
     pass
 #procédures pour les médecins
-def rendez_vous_by_date():
+def rendez_vous_by_date(*args,**kwargs):
     pass
 
 
@@ -253,20 +253,34 @@ def userchoice(status,user = None):
                 saisie_effectuée = False
                 user_choice = 0
     else :
-        print("\n1. Se deconnecter \n2. Voir les rendez-vous disponibles \n3. Prendre un rendez-vous \n4. Annuler un rendez-vous\n5. Voir les rendez-vous planifies\n6. Rechercher des rendez-vous par date\n7. Gerer l emploi du temps (Infirmiers)\n8. Consultation sur place") #to change whether it is a doctor or a patient
-        saisie_effectuée = False
-        user_choice = 0
-        while (saisie_effectuée == False) or (not 0<user_choice<9):  
-            user_choice = input('Choisissez une option (1-8) :')
-            saisie_effectuée = True
-            try:
-                user_choice = int(user_choice)
-            except :    
-                print('saisie invalide')
-                saisie_effectuée = False
-                user_choice = 0
-    return user_choice
-
+        if user == 'doc':
+            print("\n1. Se deconnecter\n2. Voir les rendez-vous planifies \n3. Annuler un rendez-vous" ) #to change whether it is a doctor or a patient
+            saisie_effectuée = False
+            user_choice = 0
+            while (saisie_effectuée == False) or (not 0<user_choice<4):  
+                user_choice = input('Choisissez une option (1-3) :')
+                saisie_effectuée = True
+                try:
+                    user_choice = int(user_choice)
+                except :    
+                    print('saisie invalide')
+                    saisie_effectuée = False
+                    user_choice = 0
+            return user_choice
+        else:
+            print("\n1. Se deconnecter \n2. Voir les rendez-vous disponibles \n3 Voir mes prochains rendez-vous \n4. Prendre un rendez-vous \n5. Annuler un rendez-vous\n6. Voir les rendez-vous planifies")
+            saisie_effectuée = False
+            user_choice = 0
+            while (saisie_effectuée == False) or (not 0<user_choice<7):  
+                user_choice = input('Choisissez une option (1-6) :')
+                saisie_effectuée = True
+                try:
+                    user_choice = int(user_choice)
+                except :    
+                    print('saisie invalide')
+                    saisie_effectuée = False
+                    user_choice = 0
+            return user_choice
 
 #quelques lignes pour initialiser les dataframes(inactivés ensuite et à réactiver si on souhaite ajouter les attributs)
 '''Bernarddoc = Doc('bernard','jojo',5,'njjjrjjg$$ùgù^^^^-',1,True,'H','gostrologue')
@@ -285,8 +299,8 @@ RDV_INIT.to_csv('rendez_vous.csv')"""
 
 MACHINE_STATUS = 'Disconnected' #au lancement du programme, personne n'est connecté
 CURRENT_USER_CONNECTED = None #l'utilisateur qui est connecté au système(on ne pourra bien sûr avoir que 1 utilisateur à la fois)
-list_actions_doctor = [disconnect,show_rendez_vous,delete_rendez_vous,rendez_vous_by_date,manage_agenda] #list that contain all the functions associated with users choices when he is connected to its own space, it is likely to evolve because it is not the same for a doctor and a patient 
-list_actions_patient = [] #à compléter
+list_actions_doctor = [disconnect,show_rendez_vous,delete_rendez_vous] #list that contain all the functions associated with users choices when he is connected to its own space, it is likely to evolve because it is not the same for a doctor and a patient 
+list_actions_patient = [disconnect,show_next_disponibilities,show_rendez_vous,make_rendez_vous,delete_rendez_vous] #à compléter
 
 while True:
     PATIENTS = pd.read_csv('patients.csv')
@@ -303,7 +317,9 @@ while True:
     else:
         if type(CURRENT_USER_CONNECTED) == Doc:
             c = userchoice(MACHINE_STATUS,user = 'Doc')
+            list_actions_doctor[c-1]() #mettre entre parenthèse tout les arguments nécéssiare au bon fonctionnement de n'importe laquelle des fonctions
         else:
             c = userchoice(MACHINE_STATUS,user = 'Patient')
+            list_actions_patient[c-1]() #même remarque que pour docteur
     PATIENTS.to_csv('patients.csv')
     DOCTEURS.to_csv('docteurs.csv')
