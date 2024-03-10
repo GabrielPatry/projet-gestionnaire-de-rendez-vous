@@ -135,8 +135,8 @@ class RendezVous:
 
 #Rajout pour la classe rendez-vous
     def __init__(self, medecin, patient, jour, heure_debut, heure_fin, salle=None):
-        self.medecin = medecin
-        self.patient = patient
+        self.medecin = medecin #l'identifiant du médecin
+        self.patient = patient #l'identifiant du patient
         self.jour = jour
         self.heure_debut = heure_debut
         self.heure_fin = heure_fin
@@ -209,10 +209,20 @@ def disconnect():
     pass
 
 #procédures pour les patients
-def show_rendez_vous():
-    pass
+def show_rendez_vous(df_rendez_vous,userID,doctor = False):
+    if doctor:
+        df_rendez_vous_user = df_rendez_vous[df_rendez_vous.medecin == userID]
+        rendez_vous_user = df_rendez_vous_user.to_dict(orient = 'records')
+        for rdv in rendez_vous_user:
+            print(RendezVous(**rdv))
+    else:
+        df_rendez_vous_user = df_rendez_vous[df_rendez_vous.patient == userID]
+        rendez_vous_user = df_rendez_vous_user.to_dict(orient = 'records')
+        for rdv in rendez_vous_user:
+            print(RendezVous(**rdv))        
 
-def make_rendez_vous():
+def make_rendez_vous(df_rendez_vous,docteurID):
+    """seul le patient peut prendre rendez-vous (et ça fait sens t'imagine c'est le docteur qui t'appelles etqui te dit "mon gars tu va venir dans mon cabinet demain")"""
     pass
 
 def delete_rendez_vous():
