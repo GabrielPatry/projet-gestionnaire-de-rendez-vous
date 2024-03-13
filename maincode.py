@@ -1,5 +1,7 @@
 #from transitions import Machine
 import pandas as pd
+import datetime as dt
+import re
 #le code principal du projet médecin
 #d'abord, les classes qui seront amenées à être utilisées
 
@@ -135,24 +137,31 @@ class RendezVous:
 
 #Rajout pour la classe rendez-vous
     def __init__(self, medecin, patient, jour, heure_debut, heure_fin, salle=None,*args,**kwargs):
-        self.medecin = medecin #l'identifiant du médecin(en fait il faut que ce soit un objet de la classe Doc)
-        self.patient = patient #l'identifiant du patient(même remarque que précédemment)
-        self.jour = jour
-        self.heure_debut = heure_debut
-        self.heure_fin = heure_fin
+        self.medecin = medecin #l'identifiant du médecin
+        self.patient = patient #l'identifiant du patient
+        self.jour = dt.date(*re.split('/',jour)[::-1])
+        self.heure_debut = dt.time(*re.split(':',heure_debut))
+        self.heure_fin = dt.time(*re.split(':',heure_fin))
         self.salle = salle
 
     def __str__(self):
         salle_info = f", Salle: {self.salle}" if self.salle else ""
         return f"Rendez-vous le {self.jour} de {self.heure_debut} à {self.heure_fin} avec Dr. {self.medecin} pour {self.patient}.{salle_info}"
 
-#et on peut ensuite importer datetime du module datetime
 
 class EmploiDuTemps:
-    """classe pour décrire l'emploi du temps du médecin, ou du patient, ne sera pas utiisée car peu commode"""
-    pass
-    #l'idée est ici de définir le cadre dans lequel les rendez vous doivent s'inscrire, aussi une erreur si deux rendez-vous se superposent,
-    # et aussi un timestep pour évier d'avoir des horaires abérrants (genre on réserve au min des rdv d'un quart d'heure et on divise la journée en section de 9-00 9-15 9-30 ...)
+    """classe pour décrire l'emploi du temps du médecin, ou du patient"""
+    def __init__(self,liste_rdv,**kwds): 
+        self.liste_rdv = liste_rdv
+
+    def add_rendez_vous(self,new_rendez_vous):
+        new_liste_rdv = self.liste_rdv + [new_rendez_vous]
+        if not conflicts(new_liste_rdv):
+            self.liste_rdv = new_liste_rdv
+        else:
+            print("You can't have a rendez vous during this period!")
+    #l'idée est ici de définir le cadre dans lequel les rendez vous doivent s'inscrire, ie pas de superposition, et pas de rendez vous en dehors de certaines plages horaires(pauses repas et soir)
+    # et aussi un timestep pour évier d'avoir des horaires abérrants (genre on réserve au min des rdv d'un quart d'heure et on divise la journée en section de 9-00 9-15 9-30 ...)(pas une mauvaise idé mais plus le temps)
     #on peut appliquer une transformation sur l'objet RendezVous qu'on rentre quand on veut ajouter un RendezVous pour qu'il s'inscrive dans cette discrétisation de la journée
 
 #ici les procédures associés à chaque action élémentaire
@@ -205,6 +214,7 @@ def connect(patients,docteurs) ->User:
             input_mdp = input("votre mot de passe:")
         print(patients[patients._identifiant == input_identifiant].to_dict(orient = 'records')[0])
         return Patient(**patients[patients._identifiant == input_identifiant].to_dict(orient = 'records')[0])
+
 def disconnect(*args,**kwargs):
     pass
 
@@ -241,10 +251,20 @@ def show_next_disponibilities(*args,**kwargs):
 def rendez_vous_by_date(*args,**kwargs):
     pass
 
-
-def manage_agenda():
-    pass
 #le reste...
+def conflicts(liste_rdv)->bool:
+    """return False there are no superposition beetween the differents rendez vous, else return True"""
+    def intersect(rdv1,rdv2):
+        """return True if rdv1 and rdv2 intersect, else return False"""
+        if rdv1.jour == rdv2.jour:
+            if (rdv1.heure_debut < rdv2.heure_fin and rdv1.heure_fin > rdv2.heure_debut)or (rdv1.heure_fin > rdv2.heure_debut and rdv2.heure_fin>rdv1.heure_debut):
+                return False
+        return True
+    
+    for i,rdv in enumerate(liste_rdv):
+        for j,rdv2 in enumerate(liste_rdv):
+            if  i!=j and intersect(rdv,rdv2):
+                return False
 
 def userchoice(status,user = None):
     if status == 'Disconnected' : 
