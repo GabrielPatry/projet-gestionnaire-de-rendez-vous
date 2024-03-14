@@ -15,6 +15,7 @@ class PassWord:
 
 
 class User:
+    """on utilise ici la redaction avec property et value.setter pour anticiper de possibles demandes du client sur la forme que doivent adopter ces attributs"""
     @property
     def nom(self):
         return self._nom
@@ -81,18 +82,12 @@ class User:
         self.sexe = _sexe
         self._identifiant = self.prenom + self.nom + str(self.Noccurence)
     def change_status(self):
-        self._status = not self._status
-    
-    #nom prénom age mot de passe (why not faire un système de récupération de mot de passe) 
-    #identifiant qui sera set par défaut à prénom.nomN°d'occurence (et pas modifiable pour le début)
+        self._status = not self._status #le status individuel n'est finalement pas utiliser car peu pratique dans une application locale sur une seule machine
 
 class Doc(User):
-    #chaque médecin à un attribut de classe EmploiDuTemps pour savoir son...emploi du temps 
-
-#petit rajout pour la classe Doc
     @property
     def specialite(self):
-        return self._specialite
+        return self._specialite #on pourrait à l'avenir contraindre le choix de la spécialité parmi une liste de spécialités prédéfinies
     @specialite.setter
     def specialite(self,newspecialite):
         self._specialite = newspecialite #on peut à cet endroit facilement forcer le choix d'une spécialité parmis des spécialités existantes
@@ -101,13 +96,12 @@ class Doc(User):
         super().__init__(_nom,_prenom,_age,_password,_Noccurence,_status,_sexe)
         self._specialite = 'non renseignée'
         self.specialite = _specialite
-        #self.agenda = {} #ne passe pas dans le dataframe 
         #dans la mesure où chaque rendez vous à l'information du nom(l'identifiant) du médecin, il n'est pas nécéssaire de faire apparaître son agenda en temps qu'attribut 
 
     def ajouter_evenement(self, date, evenement):
         if date in self.agenda : 
-            self.agenda[date].append(evenement) #ici je propose que évènement soit un identifiant faisant reférence à une ligne d'un dataframe/csv spécifique qui contienne toutes les info relatives à l'évènement qui sera sans doute de la classe rendez vous
-        else :          #date sous la forme 'JJ/MM/AAAA' je propose
+            self.agenda[date].append(evenement) 
+        else :          
             self.agenda[date] = [evenement]
 
     def emploi_du_temps(self):
@@ -118,11 +112,10 @@ class Doc(User):
         for date, evenements in self.agenda.items():
             print(f"\n{date}:")
             for evenement in evenements:
-                print(f"- {evenement}") #deviendra print(df[evenement]) (bien vu le str de RendezVous)
-
+                print(f"- {evenement}") 
+    #ces deux methodes n'ont finalement pas étés utilisée du fait de la difficulté de stocker des dictionnaires dans des dataframes
 
 class Patient(User):
-# rajout class patient 
 
     def __init__(self,_nom,_prenom,_age,_password,_Noccurence,_status, _sexe, numero_secu, pathologie,**kwargs):
         super().__init__(_nom,_prenom,_age,_password,_Noccurence,_status,_sexe)
@@ -133,20 +126,18 @@ class Patient(User):
         return f"Patient: {self.nom} {self.prenom}, Age: {self.age}, Sexe: {self.sexe}, Numéro Sécurité Sociale: {self.numero_securite_sociale}, Pathologie : {self.pathologie}"
 
 class RendezVous:
-    #l'idée est ici d'avoir une heure de début et une heure de fin, aussi un jour, on pourra utiliser la classe datetime du module datetime pour les dates
 
-#Rajout pour la classe rendez-vous
     def __init__(self, medecin, patient, jour, heure_debut, heure_fin, salle=None,*args,**kwargs):
         self.medecin = medecin #l'identifiant du médecin
         self.patient = patient #l'identifiant du patient
-        self.jour = dt.date(*[int(n) for n in re.split('-',str(jour))])
-        self.heure_debut = dt.time(*[int(n) for n in re.split(':',str(heure_debut))])
-        self.heure_fin = dt.time(*[int(n) for n in re.split(':',str(heure_fin))])
+        self.jour = dt.date(*[int(n) for n in re.split('-',str(jour))]) #on effectue ici une conversion en objet datetime.date pour avoir une dte se manipulant comme un float(nottament pour les comparaisons)
+        self.heure_debut = dt.time(*[int(n) for n in re.split(':',str(heure_debut))]) #de même ici
+        self.heure_fin = dt.time(*[int(n) for n in re.split(':',str(heure_fin))]) #de même ici
         self.salle = salle
 
     def __str__(self):
         salle_info = f", Salle: {self.salle}" if self.salle else ""
-        return f"Rendez-vous le {self.jour} de {self.heure_debut} à {self.heure_fin} avec Dr. {self.medecin} pour {self.patient}.{salle_info}"
+        return f"Rendez-vous le {self.jour} de {self.heure_debut} à {self.heure_fin} avec Dr. {self.medecin} pour {self.patient}.{salle_info}" #utile pour l'affichage des rendez vous planifiés
 
 
 class EmploiDuTemps:
@@ -160,27 +151,29 @@ class EmploiDuTemps:
             self.liste_rdv = new_liste_rdv
         else:
             print("You can't have a rendez vous during this period!")
-    #l'idée est ici de définir le cadre dans lequel les rendez vous doivent s'inscrire, ie pas de superposition, et pas de rendez vous en dehors de certaines plages horaires(pauses repas et soir)
-    # et aussi un timestep pour évier d'avoir des horaires abérrants (genre on réserve au min des rdv d'un quart d'heure et on divise la journée en section de 9-00 9-15 9-30 ...)(pas une mauvaise idé mais plus le temps)
-    #on peut appliquer une transformation sur l'objet RendezVous qu'on rentre quand on veut ajouter un RendezVous pour qu'il s'inscrive dans cette discrétisation de la journée
+    #l'idée etait ici de définir le cadre dans lequel les rendez vous doivent s'inscrire, ie pas de superposition, et pas de rendez vous en dehors de certaines plages horaires(pauses repas et soir)
+    #non n'avons toutefois pas utilié cette classe au final. Pour un meilleur contrôle sur l'emploi du temps, il serait approprié de la réintroduire
 
 #ici les procédures associés à chaque action élémentaire
 
-#procédures pour l'écran d'accueil
+#fonctions pour l'écran d'accueil
 def create_user_account(patients,docteurs,doctor = False):
-    """va inclure le fait qu l'utilisateur est médecin ou patient"""
+    """crée un profil utilisateur et l'intègre dans la base de donnée"""
     nom = input('nom:')
     prenom = input('prenom:')
     age = input('age:')
     password = input('password:')
     sexe = input("sexe(H/F):") 
-    status = False 
-    Noccurence = 1 #Noccurence reste à traiter...
+    status = False  
     if doctor:
+        Noccurence = len(docteurs[(docteurs._nom == nom)&(docteurs._prenom == prenom)].to_dict(orient = 'records')) + 1 #on attribut à chaque utilisateur le nombre d'occurence de son patronyme pour pouvoir ensuite créer des identifiants uniques en fonction de si docteur ou patient
+        print("vôtre identifiant de connection sera:",prenom+nom+str(Noccurence))
         specialite = input("specialite:")
         newuser = Doc(nom,prenom,age,password,Noccurence,status,sexe,specialite)
         docteurs = pd.concat([docteurs,pd.DataFrame(newuser.__dict__,index = [0])],ignore_index = True)
     else:
+        Noccurence = len(patients[(patients._nom == nom)&(patients._prenom == prenom)].to_dict(orient = 'records')) + 1 
+        print("vôtre identifiant de connection sera:",prenom+nom+str(Noccurence))
         num_secu = input('ton num de secu:')
         pathos = input("pourquoi tu consulte?")
         newuser = Patient(nom,prenom,age,password,Noccurence,status,sexe,num_secu,pathos)
@@ -189,6 +182,7 @@ def create_user_account(patients,docteurs,doctor = False):
 
 
 def connect(patients,docteurs) ->User:
+    """récupère les identifiants de connection de l'utilisateur et renvoie un objet user correspondant à celui-ci"""
     est_docteur = input('docteur?(oui/non)') 
     if est_docteur == 'oui':
         liste_identifiants_doc = list(docteurs['_identifiant'])
@@ -215,8 +209,9 @@ def connect(patients,docteurs) ->User:
         print(patients[patients._identifiant == input_identifiant].to_dict(orient = 'records')[0])
         return Patient(**patients[patients._identifiant == input_identifiant].to_dict(orient = 'records')[0])
     
-#procédures pour les patients
+#procédures pour les utilisateurs
 def show_rendez_vous(df_rendez_vous,userID,doctor = False,**kwargs):
+    """affiche les rendez-vous de l'utilisateur"""
     if doctor:
         print(userID)
         df_rendez_vous_user = df_rendez_vous[df_rendez_vous.medecin == userID]
@@ -228,10 +223,11 @@ def show_rendez_vous(df_rendez_vous,userID,doctor = False,**kwargs):
         rendez_vous_user = df_rendez_vous_user.to_dict(orient = 'records')
         for rdv in rendez_vous_user:
             print(RendezVous(**rdv))  
-    return df_rendez_vous      
+    return df_rendez_vous  #toutes les fonctions renvoient df_rendez_vous pour pouvoir accéder aux fonctions par la liste    
 
 def make_rendez_vous(df_rendez_vous,userID,**kwargs):
-    """seul le patient peut prendre rendez-vous (et ça fait sens t'imagine c'est le docteur qui t'appelles et qui te dit "mon gars tu va venir dans mon cabinet demain")"""
+    """créer un instance rendez vous avec les informations saisie par le patient et renvoie une version
+    mise à jour de la database des rendez-vous. Seul le patient peut prendre rendez-vous"""
     medecin = input("avec quel médecin tu veux te soigner(écrit son identifiant):")
     patient = userID
     jour = input("quel jour(format AAAA-MM-JJ):")
@@ -258,6 +254,7 @@ def make_rendez_vous(df_rendez_vous,userID,**kwargs):
     return df_rendez_vous_p
 
 def delete_rendez_vous(df_rendez_vous,userID,doctor = False,**kwargs):
+    """supprime un rendez-vous de la database. Le rendez-vous à annuler est choisi par l'utilisateur"""
     if doctor:
         df_rendez_vous_user = df_rendez_vous[df_rendez_vous.medecin == userID]
         rendez_vous_user = df_rendez_vous_user.to_dict(orient = 'records')
@@ -305,17 +302,16 @@ def delete_rendez_vous(df_rendez_vous,userID,doctor = False,**kwargs):
         return df_rendez_vous
     
 def show_next_disponibilities(df_rendez_vous,**kwargs):
-    """this function print the emploi du temps of the named doctor. Proposing a time for rendez vous will be absud becauce there are no limitations linked with the end of the day or things like that"""
+    """renvoie l'emploi du temps du médecin avc lequel l'utilisateur souhaite prendre rendez-vous"""
     doctorID = input("saissisez l'ID du docteur avec lequel vous souhaitez prendre rendez-vous:")
     show_rendez_vous(df_rendez_vous,doctorID,doctor = True)
     return df_rendez_vous
-#procédures pour les médecins
 
 #le reste...
 def conflicts(liste_rdv)->bool:
-    """return False there are no superposition beetween the differents rendez vous, else return True"""
+    """renvoie True si certains rendez-vous de la liste donnée en argument se superposent, sinon renvoie False"""
     def intersect(rdv1,rdv2):
-        """return True if rdv1 and rdv2 intersect, else return False"""
+        """return True si rdv1 et rdv2 s'intersectent, sinon return False"""
         if rdv1.jour == rdv2.jour:
             if (rdv1.heure_debut < rdv2.heure_fin and rdv1.heure_fin > rdv2.heure_debut)or (rdv1.heure_fin > rdv2.heure_debut and rdv2.heure_fin>rdv1.heure_debut):
                 return True
@@ -343,7 +339,7 @@ def userchoice(status,user = None):
         return user_choice
     else :
         if user == 'Doc':
-            print("\n1. Se deconnecter\n2. Voir les rendez-vous planifies \n3. Annuler un rendez-vous" ) #to change whether it is a doctor or a patient
+            print("\n1. Se deconnecter\n2. Voir les rendez-vous planifies \n3. Annuler un rendez-vous" ) 
             saisie_effectuée = False
             user_choice = 0
             while (saisie_effectuée == False) or (not 0<user_choice<4):  
@@ -370,16 +366,17 @@ def userchoice(status,user = None):
                     saisie_effectuée = False
                     user_choice = 0
             return user_choice
+
+#quelques lignes pour initialiser les dataframes(inactivés normalemnt, mais à réactiver si on souhaite ajouter des attributs)
 """
-#quelques lignes pour initialiser les dataframes(inactivés ensuite et à réactiver si on souhaite ajouter les attributs)
 Bernarddoc = Doc('bernard','jojo',5,'njjjrjjg$$ùgù^^^^-',1,True,'H','gostrologue')
 Bernardpat = Patient('bernard','jojo',5,'njjjrjjg$$ùgù^^^^-',1,True,'H',47,'les cramptés')
 
 DOCTEURS_INIT = pd.DataFrame(data = Bernarddoc.__dict__,index = [0])
 PATIENTS_INIT = pd.DataFrame(data = Bernardpat.__dict__,index = [0])
 DOCTEURS_INIT.to_csv('docteurs.csv')
-PATIENTS_INIT.to_csv('patients.csv')"""
-"""#quelques lignes pour initialiser le Dataframe qui va contenir les rendez-vous
+PATIENTS_INIT.to_csv('patients.csv')
+#quelques lignes pour initialiser le Dataframe qui va contenir les rendez-vous
 RDV_0 = RendezVous('doc','pat','2003-11-27','17:30','18:00')
 RDV_INIT = pd.DataFrame(data = RDV_0.__dict__,index  = [0])
 RDV_INIT.to_csv('rendez_vous.csv')"""
@@ -388,8 +385,8 @@ RDV_INIT.to_csv('rendez_vous.csv')"""
 
 MACHINE_STATUS = 'Disconnected' #au lancement du programme, personne n'est connecté
 CURRENT_USER_CONNECTED = None #l'utilisateur qui est connecté au système(on ne pourra bien sûr avoir que 1 utilisateur à la fois)
-list_actions_doctor = ['disconnect',show_rendez_vous,delete_rendez_vous] #list that contain all the functions associated with users choices when he is connected to its own space, it is likely to evolve because it is not the same for a doctor and a patient 
-list_actions_patient = ['disconnect',show_next_disponibilities,show_rendez_vous,make_rendez_vous,delete_rendez_vous] #à compléter
+list_actions_doctor = ['disconnect',show_rendez_vous,delete_rendez_vous] #list that contain all the functions associated with users choices when he is connected to its own space
+list_actions_patient = ['disconnect',show_next_disponibilities,show_rendez_vous,make_rendez_vous,delete_rendez_vous] 
 
 while True:
     PATIENTS = pd.read_csv('patients.csv')
@@ -407,7 +404,7 @@ while True:
             c = userchoice(MACHINE_STATUS,user = 'Doc')
             if c == 1:MACHINE_STATUS = 'Disconnected' #cette action ne nécessite pas un fonction
             else:
-                RDV = list_actions_doctor[c-1](df_rendez_vous = RDV,userID = CURRENT_USER_CONNECTED.identifiant,doctor = True) #mettre entre parenthèse tout les arguments nécéssaire au bon fonctionnement de n'importe laquelle des fonctions
+                RDV = list_actions_doctor[c-1](df_rendez_vous = RDV,userID = CURRENT_USER_CONNECTED.identifiant,doctor = True) #entre parenthèse tout les arguments nécéssaire au bon fonctionnement de n'importe laquelle des fonctions
         else:
             c = userchoice(MACHINE_STATUS,user = 'Patient')
             if c == 1:MACHINE_STATUS = 'Disconnected'
@@ -415,4 +412,4 @@ while True:
                 RDV = list_actions_patient[c-1](df_rendez_vous = RDV,userID = CURRENT_USER_CONNECTED.identifiant) #même remarque que pour docteur
     PATIENTS.to_csv('patients.csv')
     DOCTEURS.to_csv('docteurs.csv')
-    RDV.to_csv('rendez_vous.csv')
+    RDV.to_csv('rendez_vous.csv') #en fin d'exécution, on sauvegarde les datasets mis à jours
