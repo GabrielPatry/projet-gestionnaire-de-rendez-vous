@@ -96,7 +96,7 @@ class Doc(User):
         super().__init__(_nom,_prenom,_age,_password,_Noccurence,_status,_sexe)
         self._specialite = 'non renseignée'
         self.specialite = _specialite
-        #dans la mesure où chaque rendez vous à l'information du nom(l'identifiant) du médecin, il n'est pas nécéssaire de faire apparaître son agenda en temps qu'attribut 
+        #dans la mesure où chaque rendez vous a l'information du nom(l'identifiant) du médecin, il n'est pas nécéssaire de faire apparaître son agenda en temps qu'attribut 
 
     def ajouter_evenement(self, date, evenement):
         if date in self.agenda : 
@@ -113,7 +113,7 @@ class Doc(User):
             print(f"\n{date}:")
             for evenement in evenements:
                 print(f"- {evenement}") 
-    #ces deux methodes n'ont finalement pas étés utilisée du fait de la difficulté de stocker des dictionnaires dans des dataframes
+    #ces deux methodes n'ont finalement pas été utilisées du fait de la difficulté de stocker des dictionnaires dans des dataframes
 
 class Patient(User):
 
@@ -154,11 +154,11 @@ class EmploiDuTemps:
     #l'idée etait ici de définir le cadre dans lequel les rendez vous doivent s'inscrire, ie pas de superposition, et pas de rendez vous en dehors de certaines plages horaires(pauses repas et soir)
     #non n'avons toutefois pas utilié cette classe au final. Pour un meilleur contrôle sur l'emploi du temps, il serait approprié de la réintroduire
 
-#ici les procédures associés à chaque action élémentaire
+#ici les procédures associées à chaque action élémentaire
 
 #fonctions pour l'écran d'accueil
 def create_user_account(patients,docteurs,doctor = False):
-    """crée un profil utilisateur et l'intègre dans la base de donnée"""
+    """crée un profil utilisateur et l'intègre dans la base de données"""
     nom = input('nom:')
     prenom = input('prenom:')
     age = input('age:')
@@ -166,7 +166,7 @@ def create_user_account(patients,docteurs,doctor = False):
     sexe = input("sexe(H/F):") 
     status = False  
     if doctor:
-        Noccurence = len(docteurs[(docteurs._nom == nom)&(docteurs._prenom == prenom)].to_dict(orient = 'records')) + 1 #on attribut à chaque utilisateur le nombre d'occurence de son patronyme pour pouvoir ensuite créer des identifiants uniques en fonction de si docteur ou patient
+        Noccurence = len(docteurs[(docteurs._nom == nom)&(docteurs._prenom == prenom)].to_dict(orient = 'records')) + 1 #on attribue à chaque utilisateur le nombre d'occurences de son patronyme pour pouvoir ensuite créer des identifiants uniques en fonction de si docteur ou patient
         print("vôtre identifiant de connection sera:",prenom+nom+str(Noccurence))
         specialite = input("specialite:")
         newuser = Doc(nom,prenom,age,password,Noccurence,status,sexe,specialite)
@@ -182,7 +182,7 @@ def create_user_account(patients,docteurs,doctor = False):
 
 
 def connect(patients,docteurs) ->User:
-    """récupère les identifiants de connection de l'utilisateur et renvoie un objet user correspondant à celui-ci"""
+    """récupère les identifiants de connexion de l'utilisateur et renvoie un objet user correspondant à celui-ci"""
     est_docteur = input('docteur?(oui/non)') 
     if est_docteur == 'oui':
         liste_identifiants_doc = list(docteurs['_identifiant'])
@@ -226,7 +226,7 @@ def show_rendez_vous(df_rendez_vous,userID,doctor = False,**kwargs):
     return df_rendez_vous  #toutes les fonctions renvoient df_rendez_vous pour pouvoir accéder aux fonctions par la liste    
 
 def make_rendez_vous(df_rendez_vous,userID,**kwargs):
-    """créer un instance rendez vous avec les informations saisie par le patient et renvoie une version
+    """créer une instance rendez vous avec les informations saisies par le patient et renvoie une version
     mise à jour de la database des rendez-vous. Seul le patient peut prendre rendez-vous"""
     medecin = input("avec quel médecin tu veux te soigner(écrit son identifiant):")
     patient = userID
@@ -236,7 +236,7 @@ def make_rendez_vous(df_rendez_vous,userID,**kwargs):
     new_rdv = RendezVous(medecin, patient,jour,heure_debut,heure_fin)
     df_rendez_vous_p = pd.concat([df_rendez_vous,pd.DataFrame(data = new_rdv.__dict__,index = [0])],ignore_index = True)
 
-    #quelques lignes pour vérifier que ce nouveau rendez-vous n'est pas en conlit avec d'autres
+    #quelques lignes pour vérifier que ce nouveau rendez-vous n'est pas en conflit avec d'autres
         #d'abord pour le docteur
     df_rendez_vous_doc = df_rendez_vous_p[df_rendez_vous_p.medecin == medecin]
     rendez_vous_doc = df_rendez_vous_doc.to_dict(orient = 'records')
@@ -367,7 +367,7 @@ def userchoice(status,user = None):
                     user_choice = 0
             return user_choice
 
-#quelques lignes pour initialiser les dataframes(inactivés normalemnt, mais à réactiver si on souhaite ajouter des attributs)
+#quelques lignes pour initialiser les dataframes(inactivées normalement, mais à réactiver si on souhaite ajouter des attributs)
 """
 Bernarddoc = Doc('bernard','jojo',5,'njjjrjjg$$ùgù^^^^-',1,True,'H','gostrologue')
 Bernardpat = Patient('bernard','jojo',5,'njjjrjjg$$ùgù^^^^-',1,True,'H',47,'les cramptés')
@@ -385,7 +385,7 @@ RDV_INIT.to_csv('rendez_vous.csv')"""
 
 MACHINE_STATUS = 'Disconnected' #au lancement du programme, personne n'est connecté
 CURRENT_USER_CONNECTED = None #l'utilisateur qui est connecté au système(on ne pourra bien sûr avoir que 1 utilisateur à la fois)
-list_actions_doctor = ['disconnect',show_rendez_vous,delete_rendez_vous] #list that contain all the functions associated with users choices when he is connected to its own space
+list_actions_doctor = ['disconnect',show_rendez_vous,delete_rendez_vous] #liste qui contient toutes les fonctions associées aux choix de l'utilisateur lorsqu'il est connecté à son propre espace
 list_actions_patient = ['disconnect',show_next_disponibilities,show_rendez_vous,make_rendez_vous,delete_rendez_vous] 
 
 while True:
@@ -404,7 +404,7 @@ while True:
             c = userchoice(MACHINE_STATUS,user = 'Doc')
             if c == 1:MACHINE_STATUS = 'Disconnected' #cette action ne nécessite pas un fonction
             else:
-                RDV = list_actions_doctor[c-1](df_rendez_vous = RDV,userID = CURRENT_USER_CONNECTED.identifiant,doctor = True) #entre parenthèse tout les arguments nécéssaire au bon fonctionnement de n'importe laquelle des fonctions
+                RDV = list_actions_doctor[c-1](df_rendez_vous = RDV,userID = CURRENT_USER_CONNECTED.identifiant,doctor = True) #entre parenthèses tous les arguments nécéssaires au bon fonctionnement de n'importe laquelle des fonctions
         else:
             c = userchoice(MACHINE_STATUS,user = 'Patient')
             if c == 1:MACHINE_STATUS = 'Disconnected'
@@ -412,4 +412,4 @@ while True:
                 RDV = list_actions_patient[c-1](df_rendez_vous = RDV,userID = CURRENT_USER_CONNECTED.identifiant) #même remarque que pour docteur
     PATIENTS.to_csv('patients.csv')
     DOCTEURS.to_csv('docteurs.csv')
-    RDV.to_csv('rendez_vous.csv') #en fin d'exécution, on sauvegarde les datasets mis à jours
+    RDV.to_csv('rendez_vous.csv') #en fin d'exécution, on sauvegarde les datasets mis à jour
