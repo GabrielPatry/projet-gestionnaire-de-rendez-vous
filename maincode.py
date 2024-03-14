@@ -32,7 +32,7 @@ class User:
         return self._Noccurence
     @property
     def identifiant(self):
-        return self._nom + self._prenom + self._Noccurence
+        return self._prenom + self._nom + str(self._Noccurence)
     @property
     def status(self):
         return self._status
@@ -139,9 +139,9 @@ class RendezVous:
     def __init__(self, medecin, patient, jour, heure_debut, heure_fin, salle=None,*args,**kwargs):
         self.medecin = medecin #l'identifiant du médecin
         self.patient = patient #l'identifiant du patient
-        self.jour = dt.date(*re.split('/',jour)[::-1])
-        self.heure_debut = dt.time(*re.split(':',heure_debut))
-        self.heure_fin = dt.time(*re.split(':',heure_fin))
+        self.jour = dt.date(*[int(n) for n in re.split('-',str(jour))])
+        self.heure_debut = dt.time(*[int(n) for n in re.split(':',str(heure_debut))])
+        self.heure_fin = dt.time(*[int(n) for n in re.split(':',str(heure_fin))])
         self.salle = salle
 
     def __str__(self):
@@ -195,7 +195,7 @@ def connect(patients,docteurs) ->User:
         input_identifiant = input("identifiant:")
         while not input_identifiant in liste_identifiants_doc: 
             print('identifiant invalide')
-            input_identifiant = input("identifiant")
+            input_identifiant = input("identifiant:")
         input_mdp = input("votre mot de passe:")
         while not docteurs[docteurs._identifiant == input_identifiant]['_password'][pd.Index(liste_identifiants_doc).get_loc(input_identifiant)] == input_mdp:    
             print("mot de passe incorrect !")
@@ -218,6 +218,7 @@ def connect(patients,docteurs) ->User:
 #procédures pour les patients
 def show_rendez_vous(df_rendez_vous,userID,doctor = False,**kwargs):
     if doctor:
+        print(userID)
         df_rendez_vous_user = df_rendez_vous[df_rendez_vous.medecin == userID]
         rendez_vous_user = df_rendez_vous_user.to_dict(orient = 'records')
         for rdv in rendez_vous_user:
@@ -233,27 +234,28 @@ def make_rendez_vous(df_rendez_vous,userID,**kwargs):
     """seul le patient peut prendre rendez-vous (et ça fait sens t'imagine c'est le docteur qui t'appelles et qui te dit "mon gars tu va venir dans mon cabinet demain")"""
     medecin = input("avec quel médecin tu veux te soigner(écrit son identifiant):")
     patient = userID
-    jour = input("quel jour(format JJ/MM/AAAA):")
+    jour = input("quel jour(format AAAA-MM-JJ):")
     heure_debut = input("quelle heure de début(format hh:mm)?")
     heure_fin = input("quelle heure de fin(format hh:mm)?")
     new_rdv = RendezVous(medecin, patient,jour,heure_debut,heure_fin)
+    df_rendez_vous_p = pd.concat([df_rendez_vous,pd.DataFrame(data = new_rdv.__dict__,index = [0])],ignore_index = True)
+
     #quelques lignes pour vérifier que ce nouveau rendez-vous n'est pas en conlit avec d'autres
         #d'abord pour le docteur
-    df_rendez_vous_doc = df_rendez_vous[df_rendez_vous.medecin == medecin]
+    df_rendez_vous_doc = df_rendez_vous_p[df_rendez_vous_p.medecin == medecin]
     rendez_vous_doc = df_rendez_vous_doc.to_dict(orient = 'records')
     rendez_vous_doc_rdv = [RendezVous(**dico) for dico in rendez_vous_doc]
     if conflicts(rendez_vous_doc_rdv):
         print("vous ne pouvez pas avoir un rendez-vous ici")
         return df_rendez_vous
         #puis pour le patient
-    df_rendez_vous_pat = df_rendez_vous[df_rendez_vous.patient == userID]
+    df_rendez_vous_pat = df_rendez_vous_p[df_rendez_vous_p.patient == userID]
     rendez_vous_pat = df_rendez_vous_pat.to_dict(orient = 'records')
     rendez_vous_pat_rdv = [RendezVous(**dico) for dico in rendez_vous_pat]
     if conflicts(rendez_vous_pat_rdv):
         print("vous ne pouvez pas avoir un rendez-vous ici")
         return df_rendez_vous
-    df_rendez_vous = pd.concat([df_rendez_vous,pd.DataFrame(data = new_rdv.__dict__,index = [0])],ignore_index = True)
-    return df_rendez_vous
+    return df_rendez_vous_p
 
 def delete_rendez_vous(df_rendez_vous,userID,doctor = False,**kwargs):
     if doctor:
@@ -289,8 +291,6 @@ def delete_rendez_vous(df_rendez_vous,userID,doctor = False,**kwargs):
         saisie_effectuee = False 
         c = 0
         while (not saisie_effectuee) or (not 0<c<n+1):
-            
-            print("saisie invalide")
             c = input(f"quel rendez-vous souhaitez vous supprimer(1-{n}):")
             saisie_effectuee = True
             try:
@@ -306,7 +306,7 @@ def delete_rendez_vous(df_rendez_vous,userID,doctor = False,**kwargs):
     
 def show_next_disponibilities(df_rendez_vous,**kwargs):
     """this function print the emploi du temps of the named doctor. Proposing a time for rendez vous will be absud becauce there are no limitations linked with the end of the day or things like that"""
-    doctorID = input("saissisez l'ID du doctoeur avec lequel vous souhaitez prendre rendez-vous:")
+    doctorID = input("saissisez l'ID du docteur avec lequel vous souhaitez prendre rendez-vous:")
     show_rendez_vous(df_rendez_vous,doctorID,doctor = True)
     return df_rendez_vous
 #procédures pour les médecins
@@ -318,13 +318,13 @@ def conflicts(liste_rdv)->bool:
         """return True if rdv1 and rdv2 intersect, else return False"""
         if rdv1.jour == rdv2.jour:
             if (rdv1.heure_debut < rdv2.heure_fin and rdv1.heure_fin > rdv2.heure_debut)or (rdv1.heure_fin > rdv2.heure_debut and rdv2.heure_fin>rdv1.heure_debut):
-                return False
-        return True
+                return True
+        return False
     
     for i,rdv in enumerate(liste_rdv):
         for j,rdv2 in enumerate(liste_rdv):
             if  i!=j and intersect(rdv,rdv2):
-                return False
+                return True
 
 def userchoice(status,user = None):
     if status == 'Disconnected' : 
@@ -340,8 +340,9 @@ def userchoice(status,user = None):
                 print('saisie invalide')
                 saisie_effectuée = False
                 user_choice = 0
+        return user_choice
     else :
-        if user == 'doc':
+        if user == 'Doc':
             print("\n1. Se deconnecter\n2. Voir les rendez-vous planifies \n3. Annuler un rendez-vous" ) #to change whether it is a doctor or a patient
             saisie_effectuée = False
             user_choice = 0
@@ -356,11 +357,11 @@ def userchoice(status,user = None):
                     user_choice = 0
             return user_choice
         else:
-            print("\n1. Se deconnecter \n2. Voir les rendez-vous disponibles \n3 Voir mes prochains rendez-vous \n4. Prendre un rendez-vous \n5. Annuler un rendez-vous\n6. Voir les rendez-vous planifies")
+            print("\n1. Se deconnecter \n2. Voir les rendez-vous disponibles \n3 Voir mes prochains rendez-vous \n4. Prendre un rendez-vous \n5. Annuler un rendez-vous")
             saisie_effectuée = False
             user_choice = 0
-            while (saisie_effectuée == False) or (not 0<user_choice<7):  
-                user_choice = input('Choisissez une option (1-6) :')
+            while (saisie_effectuée == False) or (not 0<user_choice<6):  
+                user_choice = input('Choisissez une option (1-5) :')
                 saisie_effectuée = True
                 try:
                     user_choice = int(user_choice)
@@ -369,17 +370,17 @@ def userchoice(status,user = None):
                     saisie_effectuée = False
                     user_choice = 0
             return user_choice
-
+"""
 #quelques lignes pour initialiser les dataframes(inactivés ensuite et à réactiver si on souhaite ajouter les attributs)
-'''Bernarddoc = Doc('bernard','jojo',5,'njjjrjjg$$ùgù^^^^-',1,True,'H','gostrologue')
+Bernarddoc = Doc('bernard','jojo',5,'njjjrjjg$$ùgù^^^^-',1,True,'H','gostrologue')
 Bernardpat = Patient('bernard','jojo',5,'njjjrjjg$$ùgù^^^^-',1,True,'H',47,'les cramptés')
 
 DOCTEURS_INIT = pd.DataFrame(data = Bernarddoc.__dict__,index = [0])
 PATIENTS_INIT = pd.DataFrame(data = Bernardpat.__dict__,index = [0])
 DOCTEURS_INIT.to_csv('docteurs.csv')
-PATIENTS_INIT.to_csv('patients.csv')'''
-#quelques lignes pour initialiser le Dataframe qui va contenir les rendez-vous
-"""RDV_0 = RendezVous('doc','pat','27/11/2003','17H30','18H00')
+PATIENTS_INIT.to_csv('patients.csv')"""
+"""#quelques lignes pour initialiser le Dataframe qui va contenir les rendez-vous
+RDV_0 = RendezVous('doc','pat','2003-11-27','17:30','18:00')
 RDV_INIT = pd.DataFrame(data = RDV_0.__dict__,index  = [0])
 RDV_INIT.to_csv('rendez_vous.csv')"""
 #et la le code
@@ -394,10 +395,8 @@ while True:
     PATIENTS = pd.read_csv('patients.csv')
     DOCTEURS = pd.read_csv('docteurs.csv')
     RDV = pd.read_csv('rendez_vous.csv')
-    print(PATIENTS)
     if MACHINE_STATUS == 'Disconnected':
         c = userchoice(MACHINE_STATUS)
-        print(c)
         if c == 1:PATIENTS,DOCTEURS = create_user_account(PATIENTS,DOCTEURS)
         elif c == 2:PATIENTS,DOCTEURS = create_user_account(PATIENTS,DOCTEURS,doctor = True)
         else:
@@ -406,14 +405,14 @@ while True:
     else:
         if type(CURRENT_USER_CONNECTED) == Doc:
             c = userchoice(MACHINE_STATUS,user = 'Doc')
-            if c == 0:MACHINE_STATUS = 'Disconnected' #cette action ne nécessite pas un fonction
+            if c == 1:MACHINE_STATUS = 'Disconnected' #cette action ne nécessite pas un fonction
             else:
-                list_actions_doctor[c-1](df_rendez_vous = RDV,userID = CURRENT_USER_CONNECTED.identifiant,doctor = True) #mettre entre parenthèse tout les arguments nécéssaire au bon fonctionnement de n'importe laquelle des fonctions
+                RDV = list_actions_doctor[c-1](df_rendez_vous = RDV,userID = CURRENT_USER_CONNECTED.identifiant,doctor = True) #mettre entre parenthèse tout les arguments nécéssaire au bon fonctionnement de n'importe laquelle des fonctions
         else:
-            if c==0:MACHINE_STATUS = 'Disconnected'
+            c = userchoice(MACHINE_STATUS,user = 'Patient')
+            if c == 1:MACHINE_STATUS = 'Disconnected'
             else:
-                c = userchoice(MACHINE_STATUS,user = 'Patient')
-                RDV = list_actions_patient[c-1](df_rendez_vous = RDV,userID = CURRENT_USER_CONNECTED.identifiant,) #même remarque que pour docteur
+                RDV = list_actions_patient[c-1](df_rendez_vous = RDV,userID = CURRENT_USER_CONNECTED.identifiant) #même remarque que pour docteur
     PATIENTS.to_csv('patients.csv')
     DOCTEURS.to_csv('docteurs.csv')
     RDV.to_csv('rendez_vous.csv')
