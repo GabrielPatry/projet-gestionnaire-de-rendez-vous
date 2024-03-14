@@ -214,12 +214,9 @@ def connect(patients,docteurs) ->User:
             input_mdp = input("votre mot de passe:")
         print(patients[patients._identifiant == input_identifiant].to_dict(orient = 'records')[0])
         return Patient(**patients[patients._identifiant == input_identifiant].to_dict(orient = 'records')[0])
-
-def disconnect(*args,**kwargs):
-    pass
-
+    
 #procédures pour les patients
-def show_rendez_vous(df_rendez_vous,userID,doctor = False):
+def show_rendez_vous(df_rendez_vous,userID,doctor = False,**kwargs):
     if doctor:
         df_rendez_vous_user = df_rendez_vous[df_rendez_vous.medecin == userID]
         rendez_vous_user = df_rendez_vous_user.to_dict(orient = 'records')
@@ -232,24 +229,87 @@ def show_rendez_vous(df_rendez_vous,userID,doctor = False):
             print(RendezVous(**rdv))  
     return df_rendez_vous      
 
-def make_rendez_vous(df_rendez_vous,patientID):
+def make_rendez_vous(df_rendez_vous,userID,**kwargs):
     """seul le patient peut prendre rendez-vous (et ça fait sens t'imagine c'est le docteur qui t'appelles et qui te dit "mon gars tu va venir dans mon cabinet demain")"""
     medecin = input("avec quel médecin tu veux te soigner(écrit son identifiant):")
-    patient = patientID
+    patient = userID
     jour = input("quel jour(format JJ/MM/AAAA):")
     heure_debut = input("quelle heure de début(format hh:mm)?")
     heure_fin = input("quelle heure de fin(format hh:mm)?")
     new_rdv = RendezVous(medecin, patient,jour,heure_debut,heure_fin)
+    #quelques lignes pour vérifier que ce nouveau rendez-vous n'est pas en conlit avec d'autres
+        #d'abord pour le docteur
+    df_rendez_vous_doc = df_rendez_vous[df_rendez_vous.medecin == medecin]
+    rendez_vous_doc = df_rendez_vous_doc.to_dict(orient = 'records')
+    rendez_vous_doc_rdv = [RendezVous(**dico) for dico in rendez_vous_doc]
+    if conflicts(rendez_vous_doc_rdv):
+        print("vous ne pouvez pas avoir un rendez-vous ici")
+        return df_rendez_vous
+        #puis pour le patient
+    df_rendez_vous_pat = df_rendez_vous[df_rendez_vous.patient == userID]
+    rendez_vous_pat = df_rendez_vous_pat.to_dict(orient = 'records')
+    rendez_vous_pat_rdv = [RendezVous(**dico) for dico in rendez_vous_pat]
+    if conflicts(rendez_vous_pat_rdv):
+        print("vous ne pouvez pas avoir un rendez-vous ici")
+        return df_rendez_vous
     df_rendez_vous = pd.concat([df_rendez_vous,pd.DataFrame(data = new_rdv.__dict__,index = [0])],ignore_index = True)
     return df_rendez_vous
 
-def delete_rendez_vous(*args,**kwargs):
-    pass
-def show_next_disponibilities(*args,**kwargs):
-    pass
+def delete_rendez_vous(df_rendez_vous,userID,doctor = False,**kwargs):
+    if doctor:
+        df_rendez_vous_user = df_rendez_vous[df_rendez_vous.medecin == userID]
+        rendez_vous_user = df_rendez_vous_user.to_dict(orient = 'records')
+        n = len(rendez_vous_user)
+        for i,rdv in enumerate(rendez_vous_user):
+            print(i+1,":",RendezVous(**rdv))
+        saisie_effectuee = False 
+        c = 0
+        while (not saisie_effectuee) or (not 0<c<n+1):
+            
+            print("saisie invalide")
+            c = input(f"quel rendez-vous souhaitez vous supprimer(1-{n}):")
+            saisie_effectuee = True
+            try:
+                c  = int(c)
+            except:
+                print("saisie invalide")
+                saisie_effectuee  = False
+                c = 0
+        #il faut ensuite retrouver l'index du rendez-vous que l'utilisateur souhaite supprimer dans la dataframe des rendez-vous globale
+        index_to_drop = df_rendez_vous_user.index[c-1]        
+        df_rendez_vous.drop(labels = index_to_drop,inplace = True)
+        return df_rendez_vous
+    
+    else:
+        df_rendez_vous_user = df_rendez_vous[df_rendez_vous.patient == userID]
+        rendez_vous_user = df_rendez_vous_user.to_dict(orient = 'records')
+        n = len(rendez_vous_user)
+        for i,rdv in enumerate(rendez_vous_user):
+            print(i+1,":",RendezVous(**rdv))
+        saisie_effectuee = False 
+        c = 0
+        while (not saisie_effectuee) or (not 0<c<n+1):
+            
+            print("saisie invalide")
+            c = input(f"quel rendez-vous souhaitez vous supprimer(1-{n}):")
+            saisie_effectuee = True
+            try:
+                c  = int(c)
+            except:
+                print("saisie invalide")
+                saisie_effectuee  = False
+                c = 0
+        #il faut ensuite retrouver l'index du rendez-vous que l'utilisateur souhaite supprimer dans la dataframe des rendez-vous globale
+        index_to_drop = df_rendez_vous_user.index[c-1]        
+        df_rendez_vous.drop(labels = index_to_drop,inplace = True)
+        return df_rendez_vous
+    
+def show_next_disponibilities(df_rendez_vous,**kwargs):
+    """this function print the emploi du temps of the named doctor. Proposing a time for rendez vous will be absud becauce there are no limitations linked with the end of the day or things like that"""
+    doctorID = input("saissisez l'ID du doctoeur avec lequel vous souhaitez prendre rendez-vous:")
+    show_rendez_vous(df_rendez_vous,doctorID,doctor = True)
+    return df_rendez_vous
 #procédures pour les médecins
-def rendez_vous_by_date(*args,**kwargs):
-    pass
 
 #le reste...
 def conflicts(liste_rdv)->bool:
@@ -327,8 +387,8 @@ RDV_INIT.to_csv('rendez_vous.csv')"""
 
 MACHINE_STATUS = 'Disconnected' #au lancement du programme, personne n'est connecté
 CURRENT_USER_CONNECTED = None #l'utilisateur qui est connecté au système(on ne pourra bien sûr avoir que 1 utilisateur à la fois)
-list_actions_doctor = [disconnect,show_rendez_vous,delete_rendez_vous] #list that contain all the functions associated with users choices when he is connected to its own space, it is likely to evolve because it is not the same for a doctor and a patient 
-list_actions_patient = [disconnect,show_next_disponibilities,show_rendez_vous,make_rendez_vous,delete_rendez_vous] #à compléter
+list_actions_doctor = ['disconnect',show_rendez_vous,delete_rendez_vous] #list that contain all the functions associated with users choices when he is connected to its own space, it is likely to evolve because it is not the same for a doctor and a patient 
+list_actions_patient = ['disconnect',show_next_disponibilities,show_rendez_vous,make_rendez_vous,delete_rendez_vous] #à compléter
 
 while True:
     PATIENTS = pd.read_csv('patients.csv')
@@ -346,10 +406,14 @@ while True:
     else:
         if type(CURRENT_USER_CONNECTED) == Doc:
             c = userchoice(MACHINE_STATUS,user = 'Doc')
-            list_actions_doctor[c-1]() #mettre entre parenthèse tout les arguments nécéssiare au bon fonctionnement de n'importe laquelle des fonctions
+            if c == 0:MACHINE_STATUS = 'Disconnected' #cette action ne nécessite pas un fonction
+            else:
+                list_actions_doctor[c-1](df_rendez_vous = RDV,userID = CURRENT_USER_CONNECTED.identifiant,doctor = True) #mettre entre parenthèse tout les arguments nécéssaire au bon fonctionnement de n'importe laquelle des fonctions
         else:
-            c = userchoice(MACHINE_STATUS,user = 'Patient')
-            RDV = list_actions_patient[c-1](RDV,CURRENT_USER_CONNECTED.identifiant) #même remarque que pour docteur
+            if c==0:MACHINE_STATUS = 'Disconnected'
+            else:
+                c = userchoice(MACHINE_STATUS,user = 'Patient')
+                RDV = list_actions_patient[c-1](df_rendez_vous = RDV,userID = CURRENT_USER_CONNECTED.identifiant,) #même remarque que pour docteur
     PATIENTS.to_csv('patients.csv')
     DOCTEURS.to_csv('docteurs.csv')
     RDV.to_csv('rendez_vous.csv')
